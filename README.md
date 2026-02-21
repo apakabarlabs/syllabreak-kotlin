@@ -1,9 +1,9 @@
-[![Tests](https://github.com/apakabarfm/syllabreak-kotlin/actions/workflows/tests.yml/badge.svg)](https://github.com/apakabarfm/syllabreak-kotlin/actions/workflows/tests.yml)
+[![Tests](https://github.com/apakabarlabs/syllabreak-kotlin/actions/workflows/tests.yml/badge.svg)](https://github.com/apakabarlabs/syllabreak-kotlin/actions/workflows/tests.yml)
 # syllabreak-kotlin
 
 Multilingual library for accurate and deterministic hyphenation and syllable counting without relying on dictionaries.
 
-This is a Kotlin/JVM port of [syllabreak-python](https://github.com/apakabarfm/syllabreak-python) library.
+This is a Kotlin/JVM port of [syllabreak-python](https://github.com/apakabarlabs/syllabreak-python) library.
 
 ## Supported Languages
 
