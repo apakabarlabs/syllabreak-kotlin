@@ -88,6 +88,11 @@ class Syllabreak
         }
 
         /**
+         * Codes of every language the loaded rules cover, in rule-file order.
+         */
+        fun supportedLanguages(): List<String> = metaRule.rules.map { it.lang }
+
+        /**
          * Syllabifies the given text by inserting soft hyphens at syllable boundaries.
          *
          * @param text The text to syllabify

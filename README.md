@@ -47,7 +47,7 @@ Add the dependency to your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("fm.apakabar:syllabreak-kotlin:0.5.1")
+    implementation("fm.apakabar:syllabreak-kotlin:0.5.2")
 }
 ```
 
@@ -81,6 +81,13 @@ This is useful when:
 - The text could match multiple languages
 - You want consistent rules for a specific language
 - Processing text in a known language
+
+### Listing supported languages
+
+```kotlin
+val s = Syllabreak()
+println(s.supportedLanguages())  // ["eng", "rus", "srp-cyrl", ...]
+```
 
 ### Language detection
 
