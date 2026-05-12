@@ -19,6 +19,10 @@ data class LanguageRule(
     val finalSequencesKeep: Set<String> = emptySet(),
     val suffixesBreakVre: Set<String> = emptySet(),
     val suffixesKeepVre: Set<String> = emptySet(),
+    // Lowercased word -> hyphen-marked split. Overrides the algorithm for
+    // individual words that escape the general rules (e.g. BCMS "dvije",
+    // "prije" — graphic -ije- not from jat, see Matešić 2015 rule P11).
+    val exceptions: Map<String, String> = emptyMap(),
     internal val uniqueChars: Set<Char> = emptySet(),
     internal val meta: MetaRule? = null,
 ) {

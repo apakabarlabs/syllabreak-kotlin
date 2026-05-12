@@ -60,6 +60,7 @@ class Syllabreak
                         finalSequencesKeep = (ruleYaml.finalSequencesKeep ?: emptyList()).toSet(),
                         suffixesBreakVre = (ruleYaml.suffixesBreakVre ?: emptyList()).toSet(),
                         suffixesKeepVre = (ruleYaml.suffixesKeepVre ?: emptyList()).toSet(),
+                        exceptions = ruleYaml.exceptions ?: emptyMap(),
                     )
                 }
             return MetaRule(rules)

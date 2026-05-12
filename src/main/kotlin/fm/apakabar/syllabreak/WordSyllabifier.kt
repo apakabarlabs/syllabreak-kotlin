@@ -344,6 +344,8 @@ private class WordSyllabification(
     }
 
     fun syllabify(): String {
+        rule.exceptions[word.lowercase()]?.let { return applyException(it) }
+
         if (nuclei.isEmpty()) {
             return word
         }
@@ -372,6 +374,20 @@ private class WordSyllabification(
             result.append(tokens[i].surface)
         }
 
+        return result.toString()
+    }
+
+    private fun applyException(splitLower: String): String {
+        val result = StringBuilder()
+        var srcIdx = 0
+        for (ch in splitLower) {
+            if (ch == '-') {
+                result.append(softHyphen)
+            } else {
+                result.append(word[srcIdx])
+                srcIdx++
+            }
+        }
         return result.toString()
     }
 }

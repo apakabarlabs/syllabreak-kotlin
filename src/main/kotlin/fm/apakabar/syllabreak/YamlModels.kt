@@ -38,4 +38,5 @@ data class RuleYaml(
     val suffixesBreakVre: List<String>?,
     @field:JsonProperty("suffixes_keep_vre")
     val suffixesKeepVre: List<String>?,
+    val exceptions: Map<String, String>?,
 )
