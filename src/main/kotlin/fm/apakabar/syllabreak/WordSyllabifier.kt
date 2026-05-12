@@ -317,7 +317,20 @@ private class WordSyllabification(
                 }
             }
             else -> {
-                // Long cluster (3+ consonants)
+                // Long cluster (3+ consonants). Try the last THREE consonants
+                // as a single onset first (Greek στρ in ά-στρο); fall back to
+                // the 2-letter check.
+                if (cluster.size >= 3) {
+                    val onset3 =
+                        (
+                            cluster[cluster.size - 3].surface +
+                                cluster[cluster.size - 2].surface +
+                                cluster.last().surface
+                        ).lowercase()
+                    if (onset3 in rule.clustersKeepNext) {
+                        return clusterIndices[clusterIndices.size - 3]
+                    }
+                }
                 var boundaryIdx = clusterIndices.last()
                 if (cluster.size >= 2 &&
                     isValidOnset(cluster[cluster.size - 2].surface, cluster.last().surface, nk)
