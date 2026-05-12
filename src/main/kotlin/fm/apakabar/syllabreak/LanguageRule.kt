@@ -23,9 +23,16 @@ data class LanguageRule(
     // individual words that escape the general rules (e.g. BCMS "dvije",
     // "prije" — graphic -ije- not from jat, see Matešić 2015 rule P11).
     val exceptions: Map<String, String> = emptyMap(),
+    // Compact-form digraph geminates -> expanded form, applied before
+    // tokenisation. Hungarian writes long double digraphs in a simplified
+    // form (ssz=sz+sz, ggy=gy+gy, ...) but at a line break both halves
+    // are restored in full (asz-szony, meny-nyi).
+    val geminateDigraphs: Map<String, String> = emptyMap(),
     internal val uniqueChars: Set<Char> = emptySet(),
     internal val meta: MetaRule? = null,
 ) {
+    data class GeminateSpan(val start: Int, val length: Int, val compactOriginal: String)
+
     val allChars: Set<Char> =
         vowels + consonants + modifiersAttachLeft +
             modifiersAttachRight + modifiersSeparators
@@ -47,5 +54,50 @@ data class LanguageRule(
         }
 
         return if (total > 0) matches.toDouble() / total else 0.0
+    }
+
+    /**
+     * Expand compact-form digraph geminates (Hungarian ssz, ggy, ...).
+     *
+     * Returns the expanded string and a list of spans. Each span carries
+     * (start_in_expanded, length_in_expanded, compact_original_text); the
+     * spans let the caller decide whether to render the expanded form (when
+     * a boundary falls inside the span) or restore the compact form
+     * (when the geminate is not actually split).
+     */
+    fun expandGeminateDigraphs(word: String): Pair<String, List<GeminateSpan>> {
+        if (geminateDigraphs.isEmpty()) return word to emptyList()
+        val patterns = geminateDigraphs.entries.sortedByDescending { it.key.length }
+        val wordLower = word.lowercase()
+        val result = StringBuilder()
+        val spans = mutableListOf<GeminateSpan>()
+        var i = 0
+        var expandedPos = 0
+        while (i < word.length) {
+            var matched = false
+            for ((short, long) in patterns) {
+                if (i + short.length <= word.length && wordLower.substring(i, i + short.length) == short) {
+                    val originalCompact = word.substring(i, i + short.length)
+                    val expansion =
+                        when {
+                            originalCompact == originalCompact.uppercase() -> long.uppercase()
+                            originalCompact[0].isUpperCase() -> long[0].uppercaseChar() + long.substring(1).lowercase()
+                            else -> long
+                        }
+                    spans.add(GeminateSpan(expandedPos, expansion.length, originalCompact))
+                    result.append(expansion)
+                    expandedPos += expansion.length
+                    i += short.length
+                    matched = true
+                    break
+                }
+            }
+            if (!matched) {
+                result.append(word[i])
+                expandedPos++
+                i++
+            }
+        }
+        return result.toString() to spans
     }
 }

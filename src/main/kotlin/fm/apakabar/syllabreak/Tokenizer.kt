@@ -105,7 +105,8 @@ class SyllableTokenizer(
     }
 
     private fun tryMatchConsonantDigraph(): Boolean {
-        for (length in listOf(2, 1)) {
+        // Length 3 supports trigraphs like Hungarian "dzs" and German "sch".
+        for (length in listOf(3, 2, 1)) {
             if (pos + length > word.length) continue
 
             val substr = wordLower.substring(pos, pos + length)

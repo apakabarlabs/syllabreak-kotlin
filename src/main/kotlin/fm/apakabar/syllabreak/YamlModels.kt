@@ -39,4 +39,6 @@ data class RuleYaml(
     @field:JsonProperty("suffixes_keep_vre")
     val suffixesKeepVre: List<String>?,
     val exceptions: Map<String, String>?,
+    @field:JsonProperty("geminate_digraphs")
+    val geminateDigraphs: Map<String, String>?,
 )

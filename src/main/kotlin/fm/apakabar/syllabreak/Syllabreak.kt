@@ -61,6 +61,7 @@ class Syllabreak
                         suffixesBreakVre = (ruleYaml.suffixesBreakVre ?: emptyList()).toSet(),
                         suffixesKeepVre = (ruleYaml.suffixesKeepVre ?: emptyList()).toSet(),
                         exceptions = ruleYaml.exceptions ?: emptyMap(),
+                        geminateDigraphs = ruleYaml.geminateDigraphs ?: emptyMap(),
                     )
                 }
             return MetaRule(rules)

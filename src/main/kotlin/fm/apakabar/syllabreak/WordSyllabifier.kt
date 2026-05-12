@@ -11,10 +11,14 @@ class WordSyllabifier(private val rule: LanguageRule) {
 }
 
 private class WordSyllabification(
-    private val word: String,
+    originalWord: String,
     private val rule: LanguageRule,
     private val softHyphen: String,
 ) {
+    private val originalWord: String = originalWord
+    private val expanded: Pair<String, List<LanguageRule.GeminateSpan>> = rule.expandGeminateDigraphs(originalWord)
+    private val word: String = expanded.first
+    private val geminateSpans: List<LanguageRule.GeminateSpan> = expanded.second
     private val tokens: List<SyllableToken> = tokenize()
     private val nuclei: List<Int> = findNuclei()
 
@@ -344,37 +348,103 @@ private class WordSyllabification(
     }
 
     fun syllabify(): String {
-        rule.exceptions[word.lowercase()]?.let { return applyException(it) }
+        rule.exceptions[originalWord.lowercase()]?.let { return applyException(it) }
 
-        if (nuclei.isEmpty()) {
-            return word
+        // When the word doesn't actually split, hand back the original surface
+        // so any geminate-digraph expansion isn't visible to the caller.
+        if (nuclei.size < 2) {
+            return originalWord
         }
 
         val boundaries = placeBoundaries()
         if (boundaries.isEmpty()) {
-            return word
+            return originalWord
         }
 
-        val result = StringBuilder()
-        var lastBoundary = 0
+        return renderWithGeminateSpans(boundaries)
+    }
 
-        for (boundary in boundaries) {
-            // Add syllable up to boundary
-            for (i in lastBoundary until boundary) {
-                if (i < tokens.size) {
-                    result.append(tokens[i].surface)
+    /**
+     * Render the result, collapsing geminate expansions that don't split.
+     *
+     * For each geminate span we keep the expanded surface only when a
+     * boundary actually falls between its tokens. Otherwise the span
+     * collapses back to its original compact text — the caller never sees
+     * a cosmetic expansion that wasn't earned by an actual line break.
+     */
+    private fun renderWithGeminateSpans(boundaries: List<Int>): String {
+        val boundarySet = boundaries.toSet()
+        val spanRanges = spanTokenRanges()
+        val spansWithInternal = spansContainingAnyBoundary(spanRanges, boundarySet)
+        val tokenToSpan = tokenToSpanIndex(spanRanges)
+
+        val output = StringBuilder()
+        var i = 0
+        while (i < tokens.size) {
+            val sIdx = tokenToSpan[i]
+            if (sIdx != null && sIdx !in spansWithInternal) {
+                val (first, last, compact) = spanRanges[sIdx]
+                if (i == first && i in boundarySet) {
+                    output.append(softHyphen)
+                }
+                output.append(compact)
+                i = last + 1
+            } else {
+                if (i in boundarySet) {
+                    output.append(softHyphen)
+                }
+                output.append(tokens[i].surface)
+                i++
+            }
+        }
+        return output.toString()
+    }
+
+    private data class TokenSpanRange(val first: Int, val last: Int, val compact: String)
+
+    private fun spanTokenRanges(): List<TokenSpanRange> {
+        val ranges = mutableListOf<TokenSpanRange>()
+        for (span in geminateSpans) {
+            val end = span.start + span.length
+            var first: Int? = null
+            var last: Int? = null
+            tokens.forEachIndexed { i, token ->
+                if (token.startIdx >= span.start && token.endIdx <= end) {
+                    if (first == null) first = i
+                    last = i
                 }
             }
-            result.append(softHyphen)
-            lastBoundary = boundary
+            if (first != null && last != null) {
+                ranges.add(TokenSpanRange(first!!, last!!, span.compactOriginal))
+            }
         }
+        return ranges
+    }
 
-        // Add remaining tokens
-        for (i in lastBoundary until tokens.size) {
-            result.append(tokens[i].surface)
+    private fun spansContainingAnyBoundary(
+        ranges: List<TokenSpanRange>,
+        boundarySet: Set<Int>,
+    ): Set<Int> {
+        val result = mutableSetOf<Int>()
+        ranges.forEachIndexed { sIdx, range ->
+            for (b in boundarySet) {
+                if (b > range.first && b <= range.last) {
+                    result.add(sIdx)
+                    break
+                }
+            }
         }
+        return result
+    }
 
-        return result.toString()
+    private fun tokenToSpanIndex(ranges: List<TokenSpanRange>): Map<Int, Int> {
+        val mapping = mutableMapOf<Int, Int>()
+        ranges.forEachIndexed { sIdx, range ->
+            for (t in range.first..range.last) {
+                mapping[t] = sIdx
+            }
+        }
+        return mapping
     }
 
     private fun applyException(splitLower: String): String {
@@ -384,7 +454,7 @@ private class WordSyllabification(
             if (ch == '-') {
                 result.append(softHyphen)
             } else {
-                result.append(word[srcIdx])
+                result.append(originalWord[srcIdx])
                 srcIdx++
             }
         }
