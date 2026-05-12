@@ -82,8 +82,10 @@ private class WordSyllabification(
                 val nextIsConsonant = (i == tokens.size - 1) || (tokens[i + 1].tokenClass == TokenClass.CONSONANT)
                 if (!prevIsConsonant || !nextIsConsonant) return@forEachIndexed
 
-                // Find distance to nearest vowel before (or word start)
-                var distToPrevVowel = i + 1 // default: distance to word start
+                // Find distance to nearest vowel before (or null if no
+                // vowel exists on that side — word starts with this run
+                // of consonants).
+                var distToPrevVowel: Int? = null
                 for (j in (i - 1) downTo 0) {
                     if (tokens[j].tokenClass == TokenClass.VOWEL) {
                         distToPrevVowel = i - j
@@ -91,8 +93,9 @@ private class WordSyllabification(
                     }
                 }
 
-                // Find distance to nearest vowel after (or word end)
-                var distToNextVowel = tokens.size - i // default: distance to word end
+                // Find distance to nearest vowel after (or null if word
+                // ends without any further vowel).
+                var distToNextVowel: Int? = null
                 for (j in (i + 1) until tokens.size) {
                     if (tokens[j].tokenClass == TokenClass.VOWEL) {
                         distToNextVowel = j - i
@@ -100,10 +103,13 @@ private class WordSyllabification(
                     }
                 }
 
-                // Syllabic consonant only if there's at least one consonant between
-                // it and nearest vowel on BOTH sides (distance > 1)
-                val hasBufferBefore = distToPrevVowel > 1
-                val hasBufferAfter = distToNextVowel > 1
+                // Syllabic consonant only if there's at least one consonant
+                // between it and the nearest vowel on BOTH sides. The "no
+                // vowel at all on that side" case (word-initial or
+                // word-final run of cons) counts as the buffer being
+                // satisfied — Swahili m-toto, BCMS prst/vrh.
+                val hasBufferBefore = distToPrevVowel == null || distToPrevVowel > 1
+                val hasBufferAfter = distToNextVowel == null || distToNextVowel > 1
                 if (hasBufferBefore && hasBufferAfter) {
                     syllabicNuclei.add(i)
                 }
