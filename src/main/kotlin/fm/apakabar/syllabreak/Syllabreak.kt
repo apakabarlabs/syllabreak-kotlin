@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import java.text.Normalizer
 
 /**
  * Main class for syllabification and language detection.
@@ -46,25 +47,49 @@ class Syllabreak
                         vowels = ruleYaml.vowels.toSet(),
                         consonants = ruleYaml.consonants.toSet(),
                         sonorants = ruleYaml.sonorants.toSet(),
-                        clustersKeepNext = (ruleYaml.clustersKeepNext ?: emptyList()).toSet(),
-                        dontSplitDigraphs = (ruleYaml.dontSplitDigraphs ?: emptyList()).toSet(),
-                        digraphVowels = (ruleYaml.digraphVowels ?: emptyList()).toSet(),
+                        clustersKeepNext = augmentSet(ruleYaml.clustersKeepNext),
+                        dontSplitDigraphs = augmentSet(ruleYaml.dontSplitDigraphs),
+                        digraphVowels = augmentSet(ruleYaml.digraphVowels),
                         glides = (ruleYaml.glides ?: "").toSet(),
                         syllabicConsonants = (ruleYaml.syllabicConsonants ?: "").toSet(),
                         modifiersAttachLeft = (ruleYaml.modifiersAttachLeft ?: "").toSet(),
                         modifiersAttachRight = (ruleYaml.modifiersAttachRight ?: "").toSet(),
                         modifiersSeparators = (ruleYaml.modifiersSeparators ?: "").toSet(),
-                        clustersOnlyAfterLong = (ruleYaml.clustersOnlyAfterLong ?: emptyList()).toSet(),
+                        clustersOnlyAfterLong = augmentSet(ruleYaml.clustersOnlyAfterLong),
                         splitHiatus = ruleYaml.splitHiatus ?: false,
                         finalSemivowels = (ruleYaml.finalSemivowels ?: "").toSet(),
-                        finalSequencesKeep = (ruleYaml.finalSequencesKeep ?: emptyList()).toSet(),
-                        suffixesBreakVre = (ruleYaml.suffixesBreakVre ?: emptyList()).toSet(),
-                        suffixesKeepVre = (ruleYaml.suffixesKeepVre ?: emptyList()).toSet(),
-                        exceptions = ruleYaml.exceptions ?: emptyMap(),
-                        geminateDigraphs = ruleYaml.geminateDigraphs ?: emptyMap(),
+                        finalSequencesKeep = augmentSet(ruleYaml.finalSequencesKeep),
+                        suffixesBreakVre = augmentSet(ruleYaml.suffixesBreakVre),
+                        suffixesKeepVre = augmentSet(ruleYaml.suffixesKeepVre),
+                        exceptions = augmentMapping(ruleYaml.exceptions),
+                        geminateDigraphs = augmentMapping(ruleYaml.geminateDigraphs),
                     )
                 }
             return MetaRule(rules)
+        }
+
+        // Multi-character entries are stored as the union of their NFC form
+        // (as written in rules.yaml) and their NFD decomposition, so the
+        // tokenizer can match against either form of input.
+        private fun augmentSet(values: List<String>?): Set<String> {
+            if (values == null) return emptySet()
+            val result = HashSet<String>(values.size * 2)
+            for (value in values) {
+                result.add(value)
+                result.add(Normalizer.normalize(value, Normalizer.Form.NFD))
+            }
+            return result
+        }
+
+        private fun augmentMapping(mapping: Map<String, String>?): Map<String, String> {
+            if (mapping == null) return emptyMap()
+            val result = HashMap<String, String>(mapping.size * 2)
+            for ((key, value) in mapping) {
+                result[key] = value
+                result[Normalizer.normalize(key, Normalizer.Form.NFD)] =
+                    Normalizer.normalize(value, Normalizer.Form.NFD)
+            }
+            return result
         }
 
         /**
@@ -84,7 +109,10 @@ class Syllabreak
          * ```
          */
         fun detectLanguage(text: String): List<String> {
-            val matchingRules = metaRule.findMatches(text)
+            // Detect on NFC-normalised text so precomposed letters (Polish ą,
+            // deu ä, polytonic Greek ἤ …) discriminate via each rule's
+            // unique_chars set, whatever form the caller hands us.
+            val matchingRules = metaRule.findMatches(Normalizer.normalize(text, Normalizer.Form.NFC))
             return matchingRules.map { it.lang }
         }
 
@@ -124,19 +152,30 @@ class Syllabreak
                 if (lang != null) {
                     getRuleByLang(lang) ?: return text
                 } else {
-                    autoDetectRule(text) ?: return text
+                    autoDetectRule(Normalizer.normalize(text, Normalizer.Form.NFC)) ?: return text
                 }
+
+            // Internally we work on the NFD form so combining marks
+            // (polytonic Greek, BCMS с́, etc.) are visible as separate
+            // codepoints. Rule fields are augmented with NFD forms at load
+            // time and the tokenizer auto-attaches Mn marks, so the
+            // algorithm runs naturally on the decomposed stream. The final
+            // result is re-normalised to NFC so callers see the canonical
+            // user-visible form.
+            val nfdText = Normalizer.normalize(text, Normalizer.Form.NFD)
 
             val syllabifier = WordSyllabifier(rule)
             val tokenizer = Tokenizer(rule)
-            val tokens = tokenizer.tokenize(text)
+            val tokens = tokenizer.tokenize(nfdText)
 
-            return tokens.joinToString("") { token ->
-                when (token.type) {
-                    TokenType.WORD -> syllabifier.syllabifyWord(token.text, softHyphen)
-                    else -> token.text
+            val output =
+                tokens.joinToString("") { token ->
+                    when (token.type) {
+                        TokenType.WORD -> syllabifier.syllabifyWord(token.text, softHyphen)
+                        else -> token.text
+                    }
                 }
-            }
+            return Normalizer.normalize(output, Normalizer.Form.NFC)
         }
 
         private fun autoDetectRule(text: String): LanguageRule? {

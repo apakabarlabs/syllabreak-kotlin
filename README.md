@@ -19,6 +19,7 @@ This is a Kotlin/JVM port of [syllabreak-python](https://github.com/apakabarlabs
 - 🇰🇿 Kazakh (`kaz`)
 - 🇰🇬 Kyrgyz (`kir`)
 - 🇬🇷 Modern Greek (`ell`)
+- 🏛️ Ancient Greek (`grc`)
 - 🇬🇪 Georgian (`kat`)
 - 🇭🇺 Hungarian (`hun`)
 - 🇩🇪 German (`deu`)
@@ -56,7 +57,7 @@ Add the dependency to your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("fm.apakabar:syllabreak-kotlin:0.9.0")
+    implementation("fm.apakabar:syllabreak-kotlin:0.10.0")
 }
 ```
 

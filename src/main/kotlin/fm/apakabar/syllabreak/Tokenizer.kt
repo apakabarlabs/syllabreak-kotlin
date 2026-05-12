@@ -65,7 +65,12 @@ class SyllableTokenizer(
 
     private fun tryMatchLeftModifier(): Boolean {
         val char = wordLower[pos]
-        if (char !in rule.modifiersAttachLeft) return false
+        // Explicit list from the rule, plus any Unicode nonspacing mark.
+        // The Mn fallback covers polytonic Greek breathings / accents /
+        // iota subscript and any other combining mark without needing to
+        // enumerate them per language.
+        val attaches = char in rule.modifiersAttachLeft || isNonspacingMark(char)
+        if (!attaches) return false
 
         if (tokens.isNotEmpty()) {
             tokens.last().apply {
@@ -104,47 +109,99 @@ class SyllableTokenizer(
         return true
     }
 
-    private fun tryMatchConsonantDigraph(): Boolean {
-        // Length 3 supports trigraphs like Hungarian "dzs" and German "sch".
-        for (length in listOf(3, 2, 1)) {
-            if (pos + length > word.length) continue
+    private fun tryMatchConsonantDigraph(): Boolean = tryMatchDigraph(rule.dontSplitDigraphs, TokenClass.CONSONANT)
 
-            val substr = wordLower.substring(pos, pos + length)
-            if (substr in rule.dontSplitDigraphs) {
-                tokens.add(
-                    SyllableToken(
-                        surface = word.substring(pos, pos + length),
-                        tokenClass = TokenClass.CONSONANT,
-                        startIdx = pos,
-                        endIdx = pos + length,
-                    ),
-                )
-                pos += length
+    private fun tryMatchVowelDigraph(): Boolean = tryMatchDigraph(rule.digraphVowels, TokenClass.VOWEL)
+
+    private fun tryMatchDigraph(
+        source: Set<String>,
+        tokenClass: TokenClass,
+    ): Boolean {
+        // First: longest direct substring match. Catches entries whose
+        // marks sit on a vowel that is itself part of the digraph
+        // (German "üh" = u + ◌̈ + h, augmented with both NFC and NFD forms).
+        for (length in listOf(3, 2, 1)) {
+            val end = pos + length
+            if (end > word.length) continue
+            val substr = wordLower.substring(pos, end)
+            if (substr in source && !diaeresisVetoesAt(end)) {
+                addDigraphToken(end, tokenClass)
+                pos = end
                 return true
             }
+        }
+
+        // Fallback: Mn-skipping match. Catches breath/accent placed
+        // between two base letters of a diphthong (Greek "ἀι" = α + U+0313 + ι
+        // still matches the "αι" entry).
+        val positions = scanBases()
+        if (positions.isEmpty()) return false
+        val bases = basesAtPositions(positions)
+        for (length in listOf(3, 2, 1)) {
+            if (bases.size < length) continue
+            val candidate = bases.take(length).joinToString("")
+            if (candidate !in source) continue
+            val end = positions[length - 1]
+            if (diaeresisVetoesAt(end)) continue
+            addDigraphToken(end, tokenClass)
+            pos = end
+            return true
         }
         return false
     }
 
-    private fun tryMatchVowelDigraph(): Boolean {
-        for (length in listOf(3, 2)) {
-            if (pos + length > word.length) continue
+    private fun addDigraphToken(
+        end: Int,
+        tokenClass: TokenClass,
+    ) {
+        tokens.add(
+            SyllableToken(
+                surface = word.substring(pos, end),
+                tokenClass = tokenClass,
+                startIdx = pos,
+                endIdx = end,
+            ),
+        )
+    }
 
-            val substr = wordLower.substring(pos, pos + length)
-            if (substr in rule.digraphVowels) {
-                val isGlide = substr.any { it in rule.glides }
-                tokens.add(
-                    SyllableToken(
-                        surface = word.substring(pos, pos + length),
-                        tokenClass = TokenClass.VOWEL,
-                        isGlide = isGlide,
-                        startIdx = pos,
-                        endIdx = pos + length,
-                    ),
-                )
-                pos += length
-                return true
+    private fun scanBases(): List<Int> {
+        // End-positions of up to 3 upcoming base letters, skipping Mn marks
+        // between them. word.substring(pos, positions[k-1]) is the surface
+        // for a k-base match including its intervening marks.
+        val positions = ArrayList<Int>(3)
+        var p = pos
+        while (p < word.length && positions.size < 3) {
+            if (isNonspacingMark(wordLower[p])) {
+                p++
+                continue
             }
+            positions.add(p + 1)
+            p++
+        }
+        return positions
+    }
+
+    private fun basesAtPositions(positions: List<Int>): List<Char> {
+        val chars = ArrayList<Char>(positions.size)
+        for ((idx, end) in positions.withIndex()) {
+            val start = if (idx == 0) pos else positions[idx - 1]
+            for (q in (end - 1) downTo start) {
+                if (!isNonspacingMark(wordLower[q])) {
+                    chars.add(wordLower[q])
+                    break
+                }
+            }
+        }
+        return chars
+    }
+
+    private fun diaeresisVetoesAt(endPos: Int): Boolean {
+        // Diaeresis (U+0308) on the closing base of a candidate digraph
+        // signals hiatus, not a diphthong (αϊ / Μαΐου / naïf).
+        for (p in endPos until word.length) {
+            val ch = wordLower[p]
+            if (!isNonspacingMark(ch)) return false
+            if (ch == COMBINING_DIAERESIS) return true
         }
         return false
     }
@@ -181,5 +238,11 @@ class SyllableTokenizer(
         }
 
         pos++
+    }
+
+    companion object {
+        private const val COMBINING_DIAERESIS = '̈'
+
+        private fun isNonspacingMark(ch: Char): Boolean = Character.getType(ch) == Character.NON_SPACING_MARK.toInt()
     }
 }
