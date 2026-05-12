@@ -13,6 +13,8 @@ data class RuleYaml(
     val sonorants: String,
     @field:JsonProperty("clusters_keep_next")
     val clustersKeepNext: List<String>?,
+    @field:JsonProperty("trailing_onsets")
+    val trailingOnsets: List<String>?,
     @field:JsonProperty("dont_split_digraphs")
     val dontSplitDigraphs: List<String>?,
     @field:JsonProperty("digraph_vowels")

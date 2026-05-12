@@ -48,6 +48,7 @@ class Syllabreak
                         consonants = ruleYaml.consonants.toSet(),
                         sonorants = ruleYaml.sonorants.toSet(),
                         clustersKeepNext = augmentSet(ruleYaml.clustersKeepNext),
+                        trailingOnsets = augmentSet(ruleYaml.trailingOnsets),
                         dontSplitDigraphs = augmentSet(ruleYaml.dontSplitDigraphs),
                         digraphVowels = augmentSet(ruleYaml.digraphVowels),
                         glides = (ruleYaml.glides ?: "").toSet(),

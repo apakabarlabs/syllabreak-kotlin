@@ -6,6 +6,13 @@ data class LanguageRule(
     val consonants: Set<Char>,
     val sonorants: Set<Char>,
     val clustersKeepNext: Set<String>,
+    // trailing_onsets — onsets valid ONLY in trailing position of a 3+
+    // consonant cluster. Used for Dutch where s+stop splits as VC-CV in
+    // a plain 2-cons cluster (kas-teel) but stays together as the next
+    // syllable's onset when preceded by another consonant (ven-ster,
+    // in-dus-trie). Checked alongside clustersKeepNext inside the 3+
+    // cluster boundary decision.
+    val trailingOnsets: Set<String> = emptySet(),
     val dontSplitDigraphs: Set<String>,
     val digraphVowels: Set<String>,
     val glides: Set<Char>,

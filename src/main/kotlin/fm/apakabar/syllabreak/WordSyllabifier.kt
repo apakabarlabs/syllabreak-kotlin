@@ -178,6 +178,7 @@ private class WordSyllabification(
         consonant1: String,
         consonant2: String,
         prevNucleusIdx: Int? = null,
+        includeTrailingOnsets: Boolean = false,
     ): Boolean {
         val onsetCandidate = consonant1.lowercase() + consonant2.lowercase()
 
@@ -188,7 +189,9 @@ private class WordSyllabification(
             }
         }
 
-        return onsetCandidate in rule.clustersKeepNext
+        if (onsetCandidate in rule.clustersKeepNext) return true
+        if (includeTrailingOnsets && onsetCandidate in rule.trailingOnsets) return true
+        return false
     }
 
     private fun isLongNucleus(nucleusIdx: Int): Boolean {
@@ -327,13 +330,18 @@ private class WordSyllabification(
                                 cluster[cluster.size - 2].surface +
                                 cluster.last().surface
                         ).lowercase()
-                    if (onset3 in rule.clustersKeepNext) {
+                    if (onset3 in rule.clustersKeepNext || onset3 in rule.trailingOnsets) {
                         return clusterIndices[clusterIndices.size - 3]
                     }
                 }
                 var boundaryIdx = clusterIndices.last()
                 if (cluster.size >= 2 &&
-                    isValidOnset(cluster[cluster.size - 2].surface, cluster.last().surface, nk)
+                    isValidOnset(
+                        cluster[cluster.size - 2].surface,
+                        cluster.last().surface,
+                        nk,
+                        includeTrailingOnsets = true,
+                    )
                 ) {
                     boundaryIdx = clusterIndices[clusterIndices.size - 2]
                 }
