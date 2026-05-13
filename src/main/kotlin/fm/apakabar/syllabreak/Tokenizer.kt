@@ -117,10 +117,32 @@ class SyllableTokenizer(
         source: Set<String>,
         tokenClass: TokenClass,
     ): Boolean {
-        // First: longest direct substring match. Catches entries whose
-        // marks sit on a vowel that is itself part of the digraph
-        // (German "üh" = u + ◌̈ + h, augmented with both NFC and NFD forms).
+        // For each candidate length (3, 2, 1) try the Mn-skipping match
+        // first, then the direct substring match. The Mn-skip path
+        // composes the next N base letters skipping combining marks, so
+        // it can cover more codepoints than a direct length-N substring
+        // — necessary for Vietnamese triphthongs like yêu (y + ê + u),
+        // where Mn-skip-3 matches the "yeu" base entry across 4
+        // codepoints, while direct-3 would catch the shorter "ye◌̂"
+        // first.
+        //
+        // The direct path is kept as a fallback within each length for
+        // entries whose marks sit on a vowel that participates in the
+        // digraph itself (German "üh" = u + ◌̈ + h).
+        val positions = scanBases()
+        val bases = if (positions.isNotEmpty()) basesAtPositions(positions) else emptyList()
         for (length in listOf(3, 2, 1)) {
+            if (bases.size >= length) {
+                val candidate = bases.take(length).joinToString("")
+                if (candidate in source) {
+                    val end = positions[length - 1]
+                    if (!diaeresisVetoesAt(end)) {
+                        addDigraphToken(end, tokenClass)
+                        pos = end
+                        return true
+                    }
+                }
+            }
             val end = pos + length
             if (end > word.length) continue
             val substr = wordLower.substring(pos, end)
@@ -129,23 +151,6 @@ class SyllableTokenizer(
                 pos = end
                 return true
             }
-        }
-
-        // Fallback: Mn-skipping match. Catches breath/accent placed
-        // between two base letters of a diphthong (Greek "ἀι" = α + U+0313 + ι
-        // still matches the "αι" entry).
-        val positions = scanBases()
-        if (positions.isEmpty()) return false
-        val bases = basesAtPositions(positions)
-        for (length in listOf(3, 2, 1)) {
-            if (bases.size < length) continue
-            val candidate = bases.take(length).joinToString("")
-            if (candidate !in source) continue
-            val end = positions[length - 1]
-            if (diaeresisVetoesAt(end)) continue
-            addDigraphToken(end, tokenClass)
-            pos = end
-            return true
         }
         return false
     }
