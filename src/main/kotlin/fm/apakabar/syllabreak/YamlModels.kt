@@ -20,6 +20,8 @@ data class RuleYaml(
     @field:JsonProperty("digraph_vowels")
     val digraphVowels: List<String>?,
     val glides: String?,
+    @field:JsonProperty("vowel_glides")
+    val vowelGlides: String?,
     @field:JsonProperty("syllabic_consonants")
     val syllabicConsonants: String?,
     @field:JsonProperty("modifiers_attach_left")

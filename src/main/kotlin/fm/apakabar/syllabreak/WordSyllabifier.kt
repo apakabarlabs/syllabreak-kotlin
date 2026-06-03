@@ -19,12 +19,34 @@ private class WordSyllabification(
     private val expanded: Pair<String, List<LanguageRule.GeminateSpan>> = rule.expandGeminateDigraphs(originalWord)
     private val word: String = expanded.first
     private val geminateSpans: List<LanguageRule.GeminateSpan> = expanded.second
-    private val tokens: List<SyllableToken> = tokenize()
+    private val tokens: List<SyllableToken> = reclassifyVowelGlides(tokenize())
     private val nuclei: List<Int> = findNuclei()
 
     private fun tokenize(): List<SyllableToken> {
         val tokenizer = SyllableTokenizer(word, rule)
         return tokenizer.tokenize()
+    }
+
+    private fun reclassifyVowelGlides(tokens: List<SyllableToken>): List<SyllableToken> {
+        // Kazakh у/и are a syllable nucleus after a consonant (ту-ыс, ки-ім,
+        // су-лу) but a glide consonant after a vowel (да-уа, not да-у-а; а-уа).
+        // Retag a single vowel-glide token to consonant when the previous
+        // non-separator token is a vowel. Long-vowel digraphs (Kyrgyz уу/ии)
+        // tokenise as one multi-character VOWEL token and are left untouched.
+        if (rule.vowelGlides.isEmpty()) return tokens
+        val result = tokens.toMutableList()
+        for (i in result.indices) {
+            val token = result[i]
+            if (token.tokenClass != TokenClass.VOWEL) continue
+            val lower = token.surface.lowercase()
+            if (lower.length != 1 || lower[0] !in rule.vowelGlides) continue
+            var prev = i - 1
+            while (prev >= 0 && result[prev].tokenClass == TokenClass.SEPARATOR) prev--
+            if (prev >= 0 && result[prev].tokenClass == TokenClass.VOWEL) {
+                result[i] = token.copy(tokenClass = TokenClass.CONSONANT)
+            }
+        }
+        return result
     }
 
     private fun findNuclei(): List<Int> {

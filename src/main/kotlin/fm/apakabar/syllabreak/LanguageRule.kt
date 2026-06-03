@@ -16,6 +16,9 @@ data class LanguageRule(
     val dontSplitDigraphs: Set<String>,
     val digraphVowels: Set<String>,
     val glides: Set<Char>,
+    // Letters that are a vowel (nucleus) after a consonant / word start but a
+    // glide consonant after a vowel — Kazakh у/и (ту-ыс vs да-уа).
+    val vowelGlides: Set<Char> = emptySet(),
     val syllabicConsonants: Set<Char>,
     val modifiersAttachLeft: Set<Char>,
     val modifiersSeparators: Set<Char>,

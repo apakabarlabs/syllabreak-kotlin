@@ -52,6 +52,7 @@ class Syllabreak
                         dontSplitDigraphs = augmentSet(ruleYaml.dontSplitDigraphs),
                         digraphVowels = augmentSet(ruleYaml.digraphVowels),
                         glides = (ruleYaml.glides ?: "").toSet(),
+                        vowelGlides = (ruleYaml.vowelGlides ?: "").toSet(),
                         syllabicConsonants = (ruleYaml.syllabicConsonants ?: "").toSet(),
                         modifiersAttachLeft = (ruleYaml.modifiersAttachLeft ?: "").toSet(),
                         modifiersSeparators = (ruleYaml.modifiersSeparators ?: "").toSet(),
