@@ -43,9 +43,10 @@ class Tokenizer(private val rule: LanguageRule) {
 }
 
 class SyllableTokenizer(
-    private val word: String,
+    rawWord: String,
     private val rule: LanguageRule,
 ) {
+    private val word = recomposeCategoryFlips(rawWord, rule)
     private val wordLower = word.lowercase()
     private val tokens = mutableListOf<SyllableToken>()
     private var pos = 0
@@ -213,15 +214,8 @@ class SyllableTokenizer(
 
     private fun addSingleCharacterToken() {
         val char = wordLower[pos]
-        val tokenClass =
-            when {
-                char in rule.vowels -> TokenClass.VOWEL
-                char in rule.consonants -> TokenClass.CONSONANT
-                else -> TokenClass.OTHER
-            }
-
-        val isGlide = char in rule.glides
-
+        val tokenClass = classifyLetter(char, rule) ?: TokenClass.OTHER
+        val isGlide = tokenClass == TokenClass.CONSONANT && char in rule.glides
         tokens.add(
             SyllableToken(
                 surface = word[pos].toString(),
@@ -231,7 +225,6 @@ class SyllableTokenizer(
                 endIdx = pos + 1,
             ),
         )
-
         pos++
     }
 
@@ -239,5 +232,52 @@ class SyllableTokenizer(
         private const val COMBINING_DIAERESIS = '̈'
 
         private fun isNonspacingMark(ch: Char): Boolean = Character.getType(ch) == Character.NON_SPACING_MARK.toInt()
+
+        /** Classify a single letter as VOWEL or CONSONANT, or null if unknown. */
+        private fun classifyLetter(
+            char: Char,
+            rule: LanguageRule,
+        ): TokenClass? =
+            when {
+                char in rule.vowels -> TokenClass.VOWEL
+                char in rule.consonants || char in rule.glides || char in rule.sonorants -> TokenClass.CONSONANT
+                else -> null
+            }
+
+        /**
+         * Recompose base+combining-mark runs that NFC into a single declared
+         * letter whose category differs from the bare NFD base. Russian й = и
+         * (vowel) + combining breve composes back to the consonant й; left
+         * decomposed, the vowel base и is wrongly read as a syllable nucleus
+         * (мой -> мо-й) or absorbed into a long-vowel digraph (Kyrgyz ии:
+         * кийиз -> кийиз). Greek accented vowels (same class) and Montenegrin
+         * с́ (no precomposed form) are untouched.
+         */
+        private fun recomposeCategoryFlips(
+            word: String,
+            rule: LanguageRule,
+        ): String {
+            val sb = StringBuilder()
+            var i = 0
+            while (i < word.length) {
+                var end = i + 1
+                while (end < word.length && isNonspacingMark(word[end])) end++
+                if (end > i + 1) {
+                    val composed = java.text.Normalizer.normalize(word.substring(i, end), java.text.Normalizer.Form.NFC)
+                    if (composed.length == 1) {
+                        val baseClass = classifyLetter(word[i].lowercaseChar(), rule)
+                        val composedClass = classifyLetter(composed[0].lowercaseChar(), rule)
+                        if (composedClass != null && composedClass != baseClass) {
+                            sb.append(composed)
+                            i = end
+                            continue
+                        }
+                    }
+                }
+                sb.append(word[i])
+                i++
+            }
+            return sb.toString()
+        }
     }
 }
