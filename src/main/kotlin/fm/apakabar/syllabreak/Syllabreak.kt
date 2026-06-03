@@ -54,7 +54,6 @@ class Syllabreak
                         glides = (ruleYaml.glides ?: "").toSet(),
                         syllabicConsonants = (ruleYaml.syllabicConsonants ?: "").toSet(),
                         modifiersAttachLeft = (ruleYaml.modifiersAttachLeft ?: "").toSet(),
-                        modifiersAttachRight = (ruleYaml.modifiersAttachRight ?: "").toSet(),
                         modifiersSeparators = (ruleYaml.modifiersSeparators ?: "").toSet(),
                         clustersOnlyAfterLong = augmentSet(ruleYaml.clustersOnlyAfterLong),
                         splitHiatus = ruleYaml.splitHiatus ?: false,

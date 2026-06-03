@@ -18,7 +18,6 @@ data class LanguageRule(
     val glides: Set<Char>,
     val syllabicConsonants: Set<Char>,
     val modifiersAttachLeft: Set<Char>,
-    val modifiersAttachRight: Set<Char>,
     val modifiersSeparators: Set<Char>,
     val clustersOnlyAfterLong: Set<String> = emptySet(),
     val splitHiatus: Boolean = false,
@@ -41,8 +40,7 @@ data class LanguageRule(
     data class GeminateSpan(val start: Int, val length: Int, val compactOriginal: String)
 
     val allChars: Set<Char> =
-        vowels + consonants + modifiersAttachLeft +
-            modifiersAttachRight + modifiersSeparators
+        vowels + consonants + modifiersAttachLeft + modifiersSeparators
 
     fun calculateMatchScore(text: String): Double {
         if (text.isEmpty()) return 0.0

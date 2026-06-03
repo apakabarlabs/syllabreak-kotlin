@@ -232,16 +232,6 @@ class SyllableTokenizer(
             ),
         )
 
-        // Handle right-attaching modifiers
-        if (pos + 1 < word.length && wordLower[pos + 1] in rule.modifiersAttachRight) {
-            tokens.last().apply {
-                surface += word[pos + 1]
-                endIdx = pos + 2
-                isModifier = true
-            }
-            pos++
-        }
-
         pos++
     }
 

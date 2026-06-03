@@ -24,8 +24,6 @@ data class RuleYaml(
     val syllabicConsonants: String?,
     @field:JsonProperty("modifiers_attach_left")
     val modifiersAttachLeft: String?,
-    @field:JsonProperty("modifiers_attach_right")
-    val modifiersAttachRight: String?,
     @field:JsonProperty("modifiers_separators")
     val modifiersSeparators: String?,
     @field:JsonProperty("clusters_only_after_long")
