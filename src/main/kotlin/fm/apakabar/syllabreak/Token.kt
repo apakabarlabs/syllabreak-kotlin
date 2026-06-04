@@ -20,7 +20,6 @@ data class Token(
 data class SyllableToken(
     var surface: String,
     val tokenClass: TokenClass,
-    var isGlide: Boolean = false,
     var isModifier: Boolean = false,
     val startIdx: Int = 0,
     var endIdx: Int = 0,

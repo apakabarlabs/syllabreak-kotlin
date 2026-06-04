@@ -215,12 +215,10 @@ class SyllableTokenizer(
     private fun addSingleCharacterToken() {
         val char = wordLower[pos]
         val tokenClass = classifyLetter(char, rule) ?: TokenClass.OTHER
-        val isGlide = tokenClass == TokenClass.CONSONANT && char in rule.glides
         tokens.add(
             SyllableToken(
                 surface = word[pos].toString(),
                 tokenClass = tokenClass,
-                isGlide = isGlide,
                 startIdx = pos,
                 endIdx = pos + 1,
             ),
@@ -240,7 +238,7 @@ class SyllableTokenizer(
         ): TokenClass? =
             when {
                 char in rule.vowels -> TokenClass.VOWEL
-                char in rule.consonants || char in rule.glides -> TokenClass.CONSONANT
+                char in rule.consonants -> TokenClass.CONSONANT
                 else -> null
             }
 
