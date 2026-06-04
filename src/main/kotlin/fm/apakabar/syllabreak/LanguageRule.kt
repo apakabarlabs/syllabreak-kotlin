@@ -4,7 +4,6 @@ data class LanguageRule(
     val lang: String,
     val vowels: Set<Char>,
     val consonants: Set<Char>,
-    val sonorants: Set<Char>,
     val clustersKeepNext: Set<String>,
     // trailing_onsets — onsets valid ONLY in trailing position of a 3+
     // consonant cluster. Used for Dutch where s+stop splits as VC-CV in

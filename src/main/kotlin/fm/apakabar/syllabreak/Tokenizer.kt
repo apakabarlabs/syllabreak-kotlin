@@ -240,7 +240,7 @@ class SyllableTokenizer(
         ): TokenClass? =
             when {
                 char in rule.vowels -> TokenClass.VOWEL
-                char in rule.consonants || char in rule.glides || char in rule.sonorants -> TokenClass.CONSONANT
+                char in rule.consonants || char in rule.glides -> TokenClass.CONSONANT
                 else -> null
             }
 
