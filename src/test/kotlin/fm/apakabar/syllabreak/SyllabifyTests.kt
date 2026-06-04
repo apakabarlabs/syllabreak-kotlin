@@ -1,22 +1,23 @@
 package fm.apakabar.syllabreak
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.fasterxml.jackson.module.kotlin.kotlinModule
-import com.fasterxml.jackson.module.kotlin.readValue
+import com.charleskorn.kaml.Yaml
+import kotlinx.serialization.Serializable
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
 import kotlin.test.assertEquals
 
 class SyllabifyTests {
+    @Serializable
     data class TestData(val tests: List<TestSection>)
 
+    @Serializable
     data class TestSection(
         val section: String,
-        val lang: String?,
+        val lang: String? = null,
         val cases: List<TestCase>,
     )
 
+    @Serializable
     data class TestCase(
         val text: String,
         val want: String,
@@ -24,13 +25,13 @@ class SyllabifyTests {
 
     @TestFactory
     fun syllabifyTests(): Collection<DynamicTest> {
-        val mapper = ObjectMapper(YAMLFactory()).registerModule(kotlinModule())
         val input =
             requireNotNull(
                 this::class.java.getResourceAsStream("/syllabify_tests.yaml"),
             ) { "Cannot load syllabify_tests.yaml" }
 
-        val data: TestData = input.use { mapper.readValue(it) }
+        val text = input.use { it.readBytes().decodeToString() }
+        val data = Yaml.default.decodeFromString(TestData.serializer(), text)
         val tests = mutableListOf<DynamicTest>()
         val syllabifier = Syllabreak("-") // Use regular hyphen for tests
 

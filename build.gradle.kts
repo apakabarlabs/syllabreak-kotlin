@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    kotlin("plugin.serialization")
     `java-library`
     `maven-publish`
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
@@ -13,9 +14,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.yaml:snakeyaml:2.5")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.21.3")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.21.0")
+    implementation("io.heapy.kotaml:kotaml:0.108.0")
 
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.0")

@@ -1,9 +1,7 @@
 package fm.apakabar.syllabreak
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.fasterxml.jackson.module.kotlin.kotlinModule
-import com.fasterxml.jackson.module.kotlin.readValue
+import com.charleskorn.kaml.Yaml
+import kotlinx.serialization.Serializable
 
 /**
  * Per-language sentence → words splitter. Mirrors the Python and Swift ports
@@ -20,19 +18,21 @@ import com.fasterxml.jackson.module.kotlin.readValue
  *    "iPhoneを使う" yields ["iPhone", "を", "使", "う"].
  */
 class WordSplitter {
+    @Serializable
     private data class RulesEntry(val lang: String, val mode: String)
 
+    @Serializable
     private data class RulesData(val rules: List<RulesEntry>)
 
     private val modes: Map<String, String>
 
     init {
-        val mapper = ObjectMapper(YAMLFactory()).registerModule(kotlinModule())
         val input =
             requireNotNull(
                 this::class.java.getResourceAsStream("/word_split_rules.yaml"),
             ) { "Cannot load word_split_rules.yaml" }
-        val data: RulesData = input.use { mapper.readValue(it) }
+        val text = input.use { it.readBytes().decodeToString() }
+        val data = Yaml.default.decodeFromString(RulesData.serializer(), text)
         modes = data.rules.associate { it.lang to it.mode }
     }
 

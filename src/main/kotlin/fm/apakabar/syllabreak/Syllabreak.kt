@@ -1,9 +1,8 @@
 package fm.apakabar.syllabreak
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.fasterxml.jackson.module.kotlin.kotlinModule
-import com.fasterxml.jackson.module.kotlin.readValue
+import com.charleskorn.kaml.AnchorsAndAliases
+import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.YamlConfiguration
 import java.text.Normalizer
 
 /**
@@ -33,13 +32,18 @@ class Syllabreak
         private val metaRule: MetaRule = loadRules()
 
         private fun loadRules(): MetaRule {
-            val mapper = ObjectMapper(YAMLFactory()).registerModule(kotlinModule())
+            // kotaml (a maintained fork of kaml) resolves YAML anchors/aliases —
+            // Jackson does not (FasterXML/jackson-dataformats-text#98). Anchors
+            // let shared rule fragments (e.g. the BCMS onset list) be declared
+            // once and reused. Permitted is opt-in; the default forbids them.
+            val yaml = Yaml(configuration = YamlConfiguration(anchorsAndAliases = AnchorsAndAliases.Permitted()))
             val input =
                 requireNotNull(
                     this::class.java.getResourceAsStream("/rules.yaml"),
                 ) { "Cannot load rules.yaml" }
 
-            val data: RulesYaml = input.use { mapper.readValue(it) }
+            val text = input.use { it.readBytes().decodeToString() }
+            val data = yaml.decodeFromString(RulesYaml.serializer(), text)
             val rules =
                 data.rules.map { ruleYaml ->
                     LanguageRule(
