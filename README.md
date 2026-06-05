@@ -74,11 +74,20 @@ The engine accepts text in either NFC or NFD form and round-trips back to canoni
 
 ## Installation
 
-Add the dependency to your `build.gradle.kts`:
+syllabreak-kotlin is consumed as a source module through a Gradle composite
+build — it is not published to a Maven repository. Check the repository out next
+to your project and wire it into `settings.gradle.kts`:
+
+```kotlin
+include(":syllabreak")
+project(":syllabreak").projectDir = file("../syllabreak-kotlin")
+```
+
+then depend on it from your module's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("fm.apakabar:syllabreak-kotlin:0.19.0")
+    implementation(project(":syllabreak"))
 }
 ```
 
