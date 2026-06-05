@@ -78,7 +78,7 @@ Add the dependency to your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("fm.apakabar:syllabreak-kotlin:0.16.1")
+    implementation("fm.apakabar:syllabreak-kotlin:0.19.0")
 }
 ```
 
