@@ -486,7 +486,7 @@ private class WordSyllabification(
                 }
             }
             if (first != null && last != null) {
-                ranges.add(TokenSpanRange(first!!, last!!, span.compactOriginal))
+                ranges.add(TokenSpanRange(first, last, span.compactOriginal))
             }
         }
         return ranges
