@@ -3,7 +3,7 @@ plugins {
     kotlin("plugin.serialization")
     `java-library`
     `maven-publish`
-    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
 }
 
 group = "fm.apakabar"
