@@ -17,7 +17,7 @@ dependencies {
     implementation("io.heapy.kotaml:kotaml:0.110.0")
 
     testImplementation(kotlin("test"))
-    testImplementation("org.junit.jupiter:junit-jupiter:6.1.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
     testImplementation("org.assertj:assertj-core:3.27.7")
 }
 
