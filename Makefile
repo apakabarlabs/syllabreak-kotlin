@@ -2,7 +2,7 @@ PYTHON_DATA_DIR = ../syllabreak-python/syllabreak/data
 KOTLIN_RESOURCES_DIR = src/main/resources
 KOTLIN_TEST_RESOURCES_DIR = src/test/resources
 
-.PHONY: build test lint clean install sync-yaml
+.PHONY: build test test-build docs lint lint-fix format clean install sync-yaml
 
 build:
 	./gradlew build
@@ -10,11 +10,19 @@ build:
 test:
 	./gradlew test
 
+test-build:
+	./gradlew compileTestKotlin
+
+docs:
+	./gradlew dokkaGeneratePublicationHtml
+
 lint:
 	./gradlew ktlintCheck
 
 lint-fix:
 	./gradlew ktlintFormat
+
+format: lint-fix
 
 clean:
 	./gradlew clean

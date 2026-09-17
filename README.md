@@ -1,4 +1,5 @@
 [![Tests](https://github.com/apakabarlabs/syllabreak-kotlin/actions/workflows/tests.yml/badge.svg)](https://github.com/apakabarlabs/syllabreak-kotlin/actions/workflows/tests.yml)
+[![Documentation](https://github.com/apakabarlabs/syllabreak-kotlin/actions/workflows/documentation.yml/badge.svg)](https://apakabarlabs.github.io/syllabreak-kotlin/)
 # syllabreak-kotlin
 
 Multilingual library for accurate and deterministic hyphenation and syllable counting without relying on dictionaries.
@@ -148,6 +149,10 @@ By default, the library uses the Unicode soft hyphen (`­`), but you can customi
 val s = Syllabreak("|")  // Use pipe as separator
 println(s.syllabify("syllabification"))  // "syl|la|bi|fi|ca|tion"
 ```
+
+## Documentation
+
+The [Dokka API reference](https://apakabarlabs.github.io/syllabreak-kotlin/) is generated from the public Kotlin API and deployed by GitHub Actions.
 
 ## Out of Scope
 
