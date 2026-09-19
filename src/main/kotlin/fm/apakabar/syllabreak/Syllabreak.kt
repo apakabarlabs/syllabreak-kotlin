@@ -15,6 +15,17 @@ internal fun augmentSet(values: List<String>?): Set<String> {
     return result
 }
 
+internal fun augmentMapping(mapping: Map<String, String>?): Map<String, String> {
+    if (mapping == null) return emptyMap()
+    val result = HashMap<String, String>(mapping.size * 2)
+    for ((key, value) in mapping) {
+        result[key] = value
+        result[Normalizer.normalize(key, Normalizer.Form.NFD)] =
+            Normalizer.normalize(value, Normalizer.Form.NFD)
+    }
+    return result
+}
+
 /**
  * Main class for syllabification and language detection.
  *
@@ -79,17 +90,6 @@ class Syllabreak
                     )
                 }
             return MetaRule(rules)
-        }
-
-        private fun augmentMapping(mapping: Map<String, String>?): Map<String, String> {
-            if (mapping == null) return emptyMap()
-            val result = HashMap<String, String>(mapping.size * 2)
-            for ((key, value) in mapping) {
-                result[key] = value
-                result[Normalizer.normalize(key, Normalizer.Form.NFD)] =
-                    Normalizer.normalize(value, Normalizer.Form.NFD)
-            }
-            return result
         }
 
         /**
