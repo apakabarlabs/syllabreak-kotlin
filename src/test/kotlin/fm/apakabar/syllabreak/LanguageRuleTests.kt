@@ -6,6 +6,8 @@ import kotlinx.serialization.Serializable
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class LanguageRuleTests {
     @Serializable
@@ -13,6 +15,7 @@ class LanguageRuleTests {
         val tests: List<TestCase>,
         @SerialName("mapping_tests") val mappingTests: List<MappingTestCase>,
         @SerialName("geminate_tests") val geminateTests: List<GeminateTestCase>,
+        @SerialName("vowel_nucleus_rule_tests") val vowelNucleusRuleTests: List<VowelNucleusRuleTestCase>,
     )
 
     @Serializable
@@ -73,6 +76,14 @@ class LanguageRuleTests {
         val compact: String,
     )
 
+    @Serializable
+    data class VowelNucleusRuleTestCase(
+        val name: String,
+        val entries: List<VowelNucleusRuleYaml>,
+        val expected: List<String>? = null,
+        val error: String? = null,
+    )
+
     @TestFactory
     fun augmentSetTests(): Collection<DynamicTest> {
         val input =
@@ -123,6 +134,30 @@ class LanguageRuleTests {
                     assertEquals(expected.start, span.start)
                     assertEquals(expected.length, span.length)
                     assertEquals(expected.compact, span.compactOriginal)
+                }
+            }
+        }
+    }
+
+    @TestFactory
+    fun vowelNucleusRuleValidationTests(): Collection<DynamicTest> {
+        val input =
+            requireNotNull(this::class.java.getResourceAsStream("/language_rule_tests.yaml")) {
+                "Cannot load language_rule_tests.yaml"
+            }
+        val data = Yaml.default.decodeFromString(TestData.serializer(), input.reader().readText())
+
+        return data.vowelNucleusRuleTests.map { case ->
+            DynamicTest.dynamicTest(case.name) {
+                if (case.error != null) {
+                    val error =
+                        assertFailsWith<IllegalArgumentException> {
+                            validateVowelNucleusRules(case.entries, "aeiou".toSet())
+                        }
+                    assertTrue(error.message.orEmpty().contains(case.error))
+                } else {
+                    val actual = validateVowelNucleusRules(case.entries, "aeiou".toSet())
+                    assertEquals(case.expected, actual.map { it.suffix })
                 }
             }
         }

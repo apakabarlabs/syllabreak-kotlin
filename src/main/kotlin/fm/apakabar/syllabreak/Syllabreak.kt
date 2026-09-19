@@ -26,6 +26,42 @@ internal fun augmentMapping(mapping: Map<String, String>?): Map<String, String> 
     return result
 }
 
+internal fun validateVowelNucleusRules(
+    entries: List<VowelNucleusRuleYaml>?,
+    vowels: Set<Char>,
+): List<LanguageRule.VowelNucleusRule> {
+    return entries.orEmpty().map { entry ->
+        val suffix = Normalizer.normalize(entry.suffix, Normalizer.Form.NFD)
+        require(
+            entry.vowelLength > 0 &&
+                entry.vowelOffset in suffix.indices &&
+                entry.vowelOffset + entry.vowelLength <= suffix.length,
+        ) { "invalid vowel offset for nucleus rule: $suffix" }
+        require(suffix.substring(entry.vowelOffset, entry.vowelOffset + entry.vowelLength).all { it in vowels }) {
+            "nucleus rule target is not a vowel: $suffix"
+        }
+        require(entry.outcome in setOf("preserve", "silent")) { "invalid nucleus rule outcome: ${entry.outcome}" }
+        val predecessors =
+            entry.precededBy.orEmpty().map { predecessor ->
+                val normalized = Normalizer.normalize(predecessor, Normalizer.Form.NFD)
+                require(normalized.length == 1) { "nucleus rule predecessor must be one character: $suffix" }
+                normalized.single()
+            }.toSet()
+        require(entry.precededByClass in setOf(null, "consonant", "vowel")) {
+            "invalid nucleus rule predecessor class: ${entry.precededByClass}"
+        }
+        LanguageRule.VowelNucleusRule(
+            suffix = suffix,
+            vowelOffset = entry.vowelOffset,
+            vowelLength = entry.vowelLength,
+            outcome = entry.outcome,
+            words = entry.words.orEmpty().map { Normalizer.normalize(it, Normalizer.Form.NFD).lowercase() }.toSet(),
+            precededBy = predecessors,
+            precededByClass = entry.precededByClass,
+        )
+    }
+}
+
 /**
  * Main class for syllabification and language detection.
  *
@@ -81,6 +117,8 @@ class Syllabreak
                         finalSequencesKeep = augmentSet(ruleYaml.finalSequencesKeep),
                         suffixesBreakVre = augmentSet(ruleYaml.suffixesBreakVre),
                         suffixesKeepVre = augmentSet(ruleYaml.suffixesKeepVre),
+                        vowelNucleusRules =
+                            validateVowelNucleusRules(ruleYaml.vowelNucleusRules, ruleYaml.vowels.toSet()),
                         exceptions = augmentMapping(ruleYaml.exceptions),
                         geminateDigraphs = augmentMapping(ruleYaml.geminateDigraphs),
                     )

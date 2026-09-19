@@ -9,6 +9,17 @@ data class RulesYaml(
 )
 
 @Serializable
+data class VowelNucleusRuleYaml(
+    val suffix: String,
+    @SerialName("vowel_offset") val vowelOffset: Int,
+    @SerialName("vowel_length") val vowelLength: Int = 1,
+    val outcome: String,
+    val words: List<String>? = null,
+    @SerialName("preceded_by") val precededBy: List<String>? = null,
+    @SerialName("preceded_by_class") val precededByClass: String? = null,
+)
+
+@Serializable
 data class RuleYaml(
     val lang: String,
     val vowels: String,
@@ -41,6 +52,8 @@ data class RuleYaml(
     val suffixesBreakVre: List<String>? = null,
     @SerialName("suffixes_keep_vre")
     val suffixesKeepVre: List<String>? = null,
+    @SerialName("vowel_nucleus_rules")
+    val vowelNucleusRules: List<VowelNucleusRuleYaml>? = null,
     val exceptions: Map<String, String>? = null,
     @SerialName("geminate_digraphs")
     val geminateDigraphs: Map<String, String>? = null,

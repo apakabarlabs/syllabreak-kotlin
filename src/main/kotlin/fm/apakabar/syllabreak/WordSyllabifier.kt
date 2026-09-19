@@ -20,7 +20,7 @@ private class WordSyllabification(
     private val word: String = expanded.first
     private val geminateSpans: List<LanguageRule.GeminateSpan> = expanded.second
     private val tokens: List<SyllableToken> = reclassifyVowelGlides(tokenize())
-    private val nuclei: List<Int> = findNuclei()
+    private val nuclei: List<Int> by lazy { findNuclei() }
 
     private fun tokenize(): List<SyllableToken> {
         val tokenizer = SyllableTokenizer(word, rule)
@@ -46,9 +46,10 @@ private class WordSyllabification(
 
     private fun findNuclei(): List<Int> {
         val nuclei = mutableListOf<Int>()
+        val classifiedNucleus = classifyVowelNucleus()
 
         tokens.forEachIndexed { index, token ->
-            if (token.tokenClass == TokenClass.VOWEL) {
+            if (token.tokenClass == TokenClass.VOWEL && classifiedNucleus != (index to "silent")) {
                 nuclei.add(index)
             }
         }
@@ -129,6 +130,36 @@ private class WordSyllabification(
         }
 
         return nuclei
+    }
+
+    private fun classifyVowelNucleus(): Pair<Int, String>? {
+        val lowerWord = word.lowercase()
+        for (suffixRule in rule.vowelNucleusRules) {
+            if (suffixRule.words.isNotEmpty() && lowerWord !in suffixRule.words) continue
+            if (!lowerWord.endsWith(suffixRule.suffix)) continue
+            val endingStart = lowerWord.length - suffixRule.suffix.length
+            var preceding = endingStart - 1
+            while (preceding >= 0 && Character.getType(lowerWord[preceding]) == Character.NON_SPACING_MARK.toInt()) {
+                preceding--
+            }
+            if (suffixRule.precededBy.isNotEmpty() && (preceding < 0 || lowerWord[preceding] !in suffixRule.precededBy)) {
+                continue
+            }
+            if (suffixRule.precededByClass != null) {
+                if (preceding < 0) continue
+                val expected = if (suffixRule.precededByClass == "consonant") rule.consonants else rule.vowels
+                if (lowerWord[preceding] !in expected) continue
+            }
+            val target = endingStart + suffixRule.vowelOffset
+            val index =
+                tokens.indexOfFirst {
+                    it.startIdx == target &&
+                        it.endIdx == target + suffixRule.vowelLength &&
+                        it.tokenClass == TokenClass.VOWEL
+                }
+            if (index >= 0) return index to suffixRule.outcome
+        }
+        return null
     }
 
     private fun skipSeparatorsForward(start: Int): Int {

@@ -18,11 +18,22 @@ data class LanguageRule(
     val finalSequencesKeep: Set<String> = emptySet(),
     val suffixesBreakVre: Set<String> = emptySet(),
     val suffixesKeepVre: Set<String> = emptySet(),
+    val vowelNucleusRules: List<VowelNucleusRule> = emptyList(),
     val exceptions: Map<String, String> = emptyMap(),
     val geminateDigraphs: Map<String, String> = emptyMap(),
     internal val uniqueChars: Set<Char> = emptySet(),
     internal val meta: MetaRule? = null,
 ) {
+    data class VowelNucleusRule(
+        val suffix: String,
+        val vowelOffset: Int,
+        val vowelLength: Int,
+        val outcome: String,
+        val words: Set<String>,
+        val precededBy: Set<Char>,
+        val precededByClass: String?,
+    )
+
     data class GeminateSpan(val start: Int, val length: Int, val compactOriginal: String)
 
     val allChars: Set<Char> =
