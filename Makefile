@@ -36,3 +36,4 @@ sync-yaml:
 	cp $(PYTHON_DATA_DIR)/syllabify_tests.yaml $(KOTLIN_TEST_RESOURCES_DIR)/
 	cp $(PYTHON_DATA_DIR)/detect_language_tests.yaml $(KOTLIN_TEST_RESOURCES_DIR)/
 	cp $(PYTHON_DATA_DIR)/tokenizer_tests.yaml $(KOTLIN_TEST_RESOURCES_DIR)/
+	cp $(PYTHON_DATA_DIR)/language_rule_tests.yaml $(KOTLIN_TEST_RESOURCES_DIR)/

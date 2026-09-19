@@ -5,6 +5,16 @@ import com.charleskorn.kaml.Yaml
 import com.charleskorn.kaml.YamlConfiguration
 import java.text.Normalizer
 
+internal fun augmentSet(values: List<String>?): Set<String> {
+    if (values == null) return emptySet()
+    val result = HashSet<String>(values.size * 2)
+    for (value in values) {
+        result.add(value)
+        result.add(Normalizer.normalize(value, Normalizer.Form.NFD))
+    }
+    return result
+}
+
 /**
  * Main class for syllabification and language detection.
  *
@@ -69,19 +79,6 @@ class Syllabreak
                     )
                 }
             return MetaRule(rules)
-        }
-
-        // Multi-character entries are stored as the union of their NFC form
-        // (as written in rules.yaml) and their NFD decomposition, so the
-        // tokenizer can match against either form of input.
-        private fun augmentSet(values: List<String>?): Set<String> {
-            if (values == null) return emptySet()
-            val result = HashSet<String>(values.size * 2)
-            for (value in values) {
-                result.add(value)
-                result.add(Normalizer.normalize(value, Normalizer.Form.NFD))
-            }
-            return result
         }
 
         private fun augmentMapping(mapping: Map<String, String>?): Map<String, String> {
