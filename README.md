@@ -102,9 +102,9 @@ When no language is specified, the library automatically detects the most likely
 import fm.apakabar.syllabreak.Syllabreak
 
 val s = Syllabreak("-")
-println(s.syllabify("hello"))        // "hel-lo"
-println(s.syllabify("здраво"))       // "здра-во" (Serbian Cyrillic)
-println(s.syllabify("привет"))       // "при-вет" (Russian)
+check(s.syllabify("hello") == "hel-lo")
+check(s.syllabify("здраво") == "здра-во")
+check(s.syllabify("привет") == "при-вет")
 ```
 
 ### Specify language explicitly
@@ -113,9 +113,9 @@ You can specify the language code for more predictable results:
 
 ```kotlin
 val s = Syllabreak("-")
-println(s.syllabify("problem", "eng"))      // "pro-blem" (Force English rules)
-println(s.syllabify("problem", "srp-latn")) // "prob-lem" (Force Serbian Latin rules)
-println(s.syllabify("mlijeko", "hrv"))      // "mlije-ko" (Croatian ije is one syllable)
+check(s.syllabify("problem", "eng") == "pro-blem")
+check(s.syllabify("problem", "srp-latn") == "prob-lem")
+check(s.syllabify("mlijeko", "hrv") == "mlije-ko")
 ```
 
 This is useful when:
@@ -127,7 +127,7 @@ This is useful when:
 
 ```kotlin
 val s = Syllabreak()
-println(s.supportedLanguages())  // ["eng", "rus", "srp-cyrl", ...]
+check("eng" in s.supportedLanguages())
 ```
 
 ### Language detection
@@ -136,9 +136,9 @@ You can detect languages that match the input text:
 
 ```kotlin
 val s = Syllabreak()
-println(s.detectLanguage("hello"))   // ["eng"]
-println(s.detectLanguage("здраво"))  // ["srp-cyrl"]
-println(s.detectLanguage("привет"))  // ["rus"]
+check(s.detectLanguage("hello") == listOf("eng"))
+check(s.detectLanguage("здраво") == listOf("srp-cyrl"))
+check(s.detectLanguage("привет") == listOf("rus"))
 ```
 
 ### Custom soft hyphen
@@ -146,8 +146,8 @@ println(s.detectLanguage("привет"))  // ["rus"]
 By default, the library uses the Unicode soft hyphen (`­`), but you can customize it:
 
 ```kotlin
-val s = Syllabreak("|")  // Use pipe as separator
-println(s.syllabify("syllabification"))  // "syl|la|bi|fi|ca|tion"
+val s = Syllabreak("|")
+check(s.syllabify("syllabification") == "syl|la|bi|fi|ca|tion")
 ```
 
 ## Documentation

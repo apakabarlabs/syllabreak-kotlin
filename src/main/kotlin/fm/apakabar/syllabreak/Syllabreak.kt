@@ -53,10 +53,6 @@ class Syllabreak
         private val metaRule: MetaRule = loadRules()
 
         private fun loadRules(): MetaRule {
-            // kotaml (a maintained fork of kaml) resolves YAML anchors/aliases —
-            // Jackson does not (FasterXML/jackson-dataformats-text#98). Anchors
-            // let shared rule fragments (e.g. the BCMS onset list) be declared
-            // once and reused. Permitted is opt-in; the default forbids them.
             val yaml = Yaml(configuration = YamlConfiguration(anchorsAndAliases = AnchorsAndAliases.Permitted()))
             val input =
                 requireNotNull(
@@ -109,9 +105,6 @@ class Syllabreak
          * ```
          */
         fun detectLanguage(text: String): List<String> {
-            // Detect on NFC-normalised text so precomposed letters (Polish ą,
-            // deu ä, polytonic Greek ἤ …) discriminate via each rule's
-            // unique_chars set, whatever form the caller hands us.
             val matchingRules = metaRule.findMatches(Normalizer.normalize(text, Normalizer.Form.NFC))
             return matchingRules.map { it.lang }
         }
@@ -155,13 +148,6 @@ class Syllabreak
                     autoDetectRule(Normalizer.normalize(text, Normalizer.Form.NFC)) ?: return text
                 }
 
-            // Internally we work on the NFD form so combining marks
-            // (polytonic Greek, BCMS с́, etc.) are visible as separate
-            // codepoints. Rule fields are augmented with NFD forms at load
-            // time and the tokenizer auto-attaches Mn marks, so the
-            // algorithm runs naturally on the decomposed stream. The final
-            // result is re-normalised to NFC so callers see the canonical
-            // user-visible form.
             val nfdText = Normalizer.normalize(text, Normalizer.Form.NFD)
 
             val syllabifier = WordSyllabifier(rule)

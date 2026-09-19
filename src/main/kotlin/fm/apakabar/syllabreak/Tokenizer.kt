@@ -7,7 +7,6 @@ class Tokenizer(private val rule: LanguageRule) {
 
         var lastEnd = 0
         wordPattern.findAll(text).forEach { match ->
-            // Add non-word token if there's text before this word
             if (match.range.first > lastEnd) {
                 tokens.add(
                     Token(
@@ -17,7 +16,6 @@ class Tokenizer(private val rule: LanguageRule) {
                 )
             }
 
-            // Add word token
             tokens.add(
                 Token(
                     text = match.value,
@@ -28,7 +26,6 @@ class Tokenizer(private val rule: LanguageRule) {
             lastEnd = match.range.last + 1
         }
 
-        // Add remaining non-word text if any
         if (lastEnd < text.length) {
             tokens.add(
                 Token(
@@ -66,10 +63,6 @@ class SyllableTokenizer(
 
     private fun tryMatchLeftModifier(): Boolean {
         val char = wordLower[pos]
-        // Explicit list from the rule, plus any Unicode nonspacing mark.
-        // The Mn fallback covers polytonic Greek breathings / accents /
-        // iota subscript and any other combining mark without needing to
-        // enumerate them per language.
         val attaches = char in rule.modifiersAttachLeft || isNonspacingMark(char)
         if (!attaches) return false
 
@@ -159,9 +152,6 @@ class SyllableTokenizer(
     }
 
     private fun scanBases(): List<Int> {
-        // End-positions of up to 3 upcoming base letters, skipping Mn marks
-        // between them. word.substring(pos, positions[k-1]) is the surface
-        // for a k-base match including its intervening marks.
         val positions = ArrayList<Int>(3)
         var p = pos
         while (p < word.length && positions.size < 3) {
@@ -190,8 +180,6 @@ class SyllableTokenizer(
     }
 
     private fun diaeresisVetoesAt(endPos: Int): Boolean {
-        // Diaeresis (U+0308) on the closing base of a candidate digraph
-        // signals hiatus, not a diphthong (αϊ / Μαΐου / naïf).
         for (p in endPos until word.length) {
             val ch = wordLower[p]
             if (!isNonspacingMark(ch)) return false
@@ -219,7 +207,6 @@ class SyllableTokenizer(
 
         private fun isNonspacingMark(ch: Char): Boolean = Character.getType(ch) == Character.NON_SPACING_MARK.toInt()
 
-        /** Classify a single letter as VOWEL or CONSONANT, or null if unknown. */
         private fun classifyLetter(
             char: Char,
             rule: LanguageRule,

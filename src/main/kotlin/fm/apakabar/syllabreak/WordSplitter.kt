@@ -55,18 +55,12 @@ class WordSplitter {
     }
 
     companion object {
-        // \p{L}\p{M}\p{Nd} via UNICODE_CHARACTER_CLASS (RegexOption.UNICODE_CASE
-        // is not enough; Java needs explicit flag for \p{L}). Kotlin Regex uses
-        // java.util.regex.Pattern under the hood.
         private val defaultRegex =
             Regex(
                 "[\\p{L}\\p{M}\\p{Nd}]+(?:['’\\-][\\p{L}\\p{M}\\p{Nd}]+)*",
                 RegexOption.UNIX_LINES,
             )
 
-        // CJK char ranges as literals (Han Unified + Extension A + Compat,
-        // Hiragana, Katakana, Hangul Syllables). Latin/digit alternative is
-        // first so "iPhoneを使う" keeps "iPhone" intact.
         private val cjkRegex =
             Regex(
                 "[A-Za-z0-9]+(?:['’\\-][A-Za-z0-9]+)*" +

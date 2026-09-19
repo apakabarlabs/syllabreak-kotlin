@@ -1,11 +1,28 @@
 PYTHON_DATA_DIR = ../syllabreak-python/syllabreak/data
 KOTLIN_RESOURCES_DIR = src/main/resources
 KOTLIN_TEST_RESOURCES_DIR = src/test/resources
+COMMENTCENSOR_VERSION ?= v0.3.2
+COMMENTCENSOR_ENV = build/commentcensor
+COMMENTCENSOR = $(COMMENTCENSOR_ENV)/bin/commentcensor
 
-.PHONY: build test test-build docs lint lint-fix format clean install sync-yaml
+.DEFAULT_GOAL := build
 
-build:
-	./gradlew build
+.PHONY: install-tools comments lint lint-fix format test-build test docs build clean install sync-yaml
+
+install-tools:
+	python3 -m venv $(COMMENTCENSOR_ENV)
+	$(COMMENTCENSOR_ENV)/bin/pip install --quiet --upgrade git+https://github.com/botforge-pro/commentcensor.git@$(COMMENTCENSOR_VERSION)
+
+comments:
+	$(COMMENTCENSOR) .
+
+lint: comments
+	./gradlew ktlintCheck
+
+lint-fix:
+	./gradlew ktlintFormat
+
+format: lint-fix
 
 test:
 	./gradlew test
@@ -16,19 +33,15 @@ test-build:
 docs:
 	./gradlew dokkaGeneratePublicationHtml
 
-lint:
-	./gradlew ktlintCheck
-
-lint-fix:
-	./gradlew ktlintFormat
-
-format: lint-fix
+build: lint test-build test docs
+	./gradlew build
 
 clean:
 	./gradlew clean
 
 install:
-	./gradlew wrapper --gradle-version=8.7
+	$(MAKE) install-tools
+	./gradlew --version
 
 sync-yaml:
 	mkdir -p $(KOTLIN_RESOURCES_DIR) $(KOTLIN_TEST_RESOURCES_DIR)

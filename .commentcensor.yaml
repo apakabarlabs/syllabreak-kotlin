@@ -1,0 +1,4 @@
+documentation: https://apakabarlabs.github.io/syllabreak-kotlin/scripts/pages.json
+
+skip:
+  - build/

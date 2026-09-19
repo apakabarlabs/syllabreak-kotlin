@@ -5,17 +5,9 @@ data class LanguageRule(
     val vowels: Set<Char>,
     val consonants: Set<Char>,
     val clustersKeepNext: Set<String>,
-    // trailing_onsets — onsets valid ONLY in trailing position of a 3+
-    // consonant cluster. Used for Dutch where s+stop splits as VC-CV in
-    // a plain 2-cons cluster (kas-teel) but stays together as the next
-    // syllable's onset when preceded by another consonant (ven-ster,
-    // in-dus-trie). Checked alongside clustersKeepNext inside the 3+
-    // cluster boundary decision.
     val trailingOnsets: Set<String> = emptySet(),
     val dontSplitDigraphs: Set<String>,
     val digraphVowels: Set<String>,
-    // Letters that are a vowel (nucleus) after a consonant / word start but a
-    // glide consonant after a vowel — Kazakh у/и (ту-ыс vs да-уа).
     val vowelGlides: Set<Char> = emptySet(),
     val syllabicConsonants: Set<Char>,
     val modifiersAttachLeft: Set<Char>,
@@ -26,14 +18,7 @@ data class LanguageRule(
     val finalSequencesKeep: Set<String> = emptySet(),
     val suffixesBreakVre: Set<String> = emptySet(),
     val suffixesKeepVre: Set<String> = emptySet(),
-    // Lowercased word -> hyphen-marked split. Overrides the algorithm for
-    // individual words that escape the general rules (e.g. BCMS "dvije",
-    // "prije" — graphic -ije- not from jat, see Matešić 2015 rule P11).
     val exceptions: Map<String, String> = emptyMap(),
-    // Compact-form digraph geminates -> expanded form, applied before
-    // tokenisation. Hungarian writes long double digraphs in a simplified
-    // form (ssz=sz+sz, ggy=gy+gy, ...) but at a line break both halves
-    // are restored in full (asz-szony, meny-nyi).
     val geminateDigraphs: Map<String, String> = emptyMap(),
     internal val uniqueChars: Set<Char> = emptySet(),
     internal val meta: MetaRule? = null,
@@ -62,15 +47,6 @@ data class LanguageRule(
         return if (total > 0) matches.toDouble() / total else 0.0
     }
 
-    /**
-     * Expand compact-form digraph geminates (Hungarian ssz, ggy, ...).
-     *
-     * Returns the expanded string and a list of spans. Each span carries
-     * (start_in_expanded, length_in_expanded, compact_original_text); the
-     * spans let the caller decide whether to render the expanded form (when
-     * a boundary falls inside the span) or restore the compact form
-     * (when the geminate is not actually split).
-     */
     fun expandGeminateDigraphs(word: String): Pair<String, List<GeminateSpan>> {
         if (geminateDigraphs.isEmpty()) return word to emptyList()
         val patterns = geminateDigraphs.entries.sortedByDescending { it.key.length }

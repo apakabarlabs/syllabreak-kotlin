@@ -33,7 +33,7 @@ class SyllabifyTests {
         val text = input.use { it.readBytes().decodeToString() }
         val data = Yaml.default.decodeFromString(TestData.serializer(), text)
         val tests = mutableListOf<DynamicTest>()
-        val syllabifier = Syllabreak("-") // Use regular hyphen for tests
+        val visibleHyphenSyllabifier = Syllabreak("-")
 
         for (section in data.tests) {
             for (case in section.cases) {
@@ -41,9 +41,9 @@ class SyllabifyTests {
                     DynamicTest.dynamicTest("[${section.section}] ${case.text} -> ${case.want}") {
                         val result =
                             if (section.lang != null) {
-                                syllabifier.syllabify(case.text, section.lang)
+                                visibleHyphenSyllabifier.syllabify(case.text, section.lang)
                             } else {
-                                syllabifier.syllabify(case.text)
+                                visibleHyphenSyllabifier.syllabify(case.text)
                             }
                         assertEquals(case.want, result, "Failed for '${case.text}': got '$result', want '${case.want}'")
                     },

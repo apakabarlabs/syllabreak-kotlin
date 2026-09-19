@@ -29,15 +29,13 @@ class MetaRule(initialRules: List<LanguageRule>) {
         for (rule in rules) {
             var score = rule.calculateMatchScore(text)
             if (score > 0) {
-                // Boost score if has unique characters
                 if (rule.uniqueChars.isNotEmpty() && cleanText.any { it in rule.uniqueChars }) {
-                    score = 1.0 // Maximum score for unique chars
+                    score = 1.0
                 }
                 matches.add(rule to score)
             }
         }
 
-        // Sort by score descending
         return matches.sortedByDescending { it.second }.map { it.first }
     }
 }
