@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.20.1
+
+### Changed
+
+- Published to Maven Central as `fm.apakabar:syllabreak-kotlin`, signed. Until
+  now the library was taken as a source checkout wired into the consumer's build.
+  The code is the same as 0.20.0.
+
+  Before, in `settings.gradle.kts` and the module's `build.gradle.kts`:
+
+  ```kotlin
+  include(":syllabreak")
+  project(":syllabreak").projectDir = file("../syllabreak-kotlin")
+
+  dependencies { implementation(project(":syllabreak")) }
+  ```
+
+  After, with `mavenCentral()` among the repositories:
+
+  ```kotlin
+  dependencies { implementation("fm.apakabar:syllabreak-kotlin:0.20.1") }
+  ```
+
 ## 0.20.0
 
 ### Fixed
