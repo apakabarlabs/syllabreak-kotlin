@@ -160,7 +160,7 @@ Some writing systems do not fit syllabreak's alphabetic-rules paradigm and will 
 ## Lines of Code
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset=".github/loc-history-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset=".github/loc-history-light.svg">
-  <img alt="Lines of Code graph" src=".github/loc-history-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/apakabarlabs/syllabreak-kotlin/main/.github/loc-history-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/apakabarlabs/syllabreak-kotlin/main/.github/loc-history-light.svg">
+  <img alt="Lines of Code graph" src="https://raw.githubusercontent.com/apakabarlabs/syllabreak-kotlin/main/.github/loc-history-light.svg">
 </picture>
