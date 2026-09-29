@@ -7,7 +7,9 @@
 - The syllable and word-splitting rules ship at `fm/apakabar/syllabreak/` inside
   the jar instead of its root, so an Android app that also depends on another
   library with a `rules.yaml` no longer fails to merge its resources. Code that
-  calls the library does not change.
+  calls the library does not change. A build that worked around the clash with
+  `packaging { resources { excludes += "rules.yaml" } }` or `pickFirsts` drops that
+  line: with it, one of the libraries was left without its rules.
 
 ## 0.20.1
 
