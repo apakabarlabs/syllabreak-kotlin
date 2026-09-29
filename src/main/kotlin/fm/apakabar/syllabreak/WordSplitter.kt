@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
  * Per-language sentence → words splitter. Mirrors the Python and Swift ports
  * through the shared word_split_rules.yaml and word_split_tests.yaml.
  *
- * Two modes, configured in `/word_split_rules.yaml`:
+ * Two modes, configured in `word_split_rules.yaml`:
  *
  *  - **default** — Latin / Cyrillic / Arabic / Hebrew / Hindi etc. A word is
  *    one or more Unicode letters/marks/digits, optionally joined by an
@@ -29,7 +29,7 @@ class WordSplitter {
     init {
         val input =
             requireNotNull(
-                this::class.java.getResourceAsStream("/word_split_rules.yaml"),
+                this::class.java.getResourceAsStream("/fm/apakabar/syllabreak/word_split_rules.yaml"),
             ) { "Cannot load word_split_rules.yaml" }
         val text = input.use { it.readBytes().decodeToString() }
         val data = Yaml.default.decodeFromString(RulesData.serializer(), text)

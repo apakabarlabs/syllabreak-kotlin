@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.20.2
+
+### Fixed
+
+- The syllable and word-splitting rules ship at `fm/apakabar/syllabreak/` inside
+  the jar instead of its root, so an Android app that also depends on another
+  library with a `rules.yaml` no longer fails to merge its resources. Code that
+  calls the library does not change.
+
 ## 0.20.1
 
 ### Changed

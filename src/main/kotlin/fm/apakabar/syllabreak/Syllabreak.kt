@@ -92,7 +92,7 @@ class Syllabreak
             val yaml = Yaml(configuration = YamlConfiguration(anchorsAndAliases = AnchorsAndAliases.Permitted()))
             val input =
                 requireNotNull(
-                    this::class.java.getResourceAsStream("/rules.yaml"),
+                    this::class.java.getResourceAsStream("/fm/apakabar/syllabreak/rules.yaml"),
                 ) { "Cannot load rules.yaml" }
 
             val text = input.use { it.readBytes().decodeToString() }

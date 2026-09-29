@@ -1,20 +1,16 @@
 PYTHON_DATA_DIR = ../syllabreak-python/syllabreak/data
-KOTLIN_RESOURCES_DIR = src/main/resources
+KOTLIN_RESOURCES_DIR = src/main/resources/fm/apakabar/syllabreak
 KOTLIN_TEST_RESOURCES_DIR = src/test/resources
-COMMENTCENSOR_REF ?= 48d702a6ba4ace9af0bf996fad2fff9a012f25f9
-COMMENTCENSOR_ENV = build/commentcensor
-COMMENTCENSOR = $(COMMENTCENSOR_ENV)/bin/commentcensor
 
 .DEFAULT_GOAL := build
 
 .PHONY: install-tools comments lint lint-fix format test-build test docs build clean install sync-yaml publish publish-local publish-check
 
 install-tools:
-	python3 -m venv $(COMMENTCENSOR_ENV)
-	$(COMMENTCENSOR_ENV)/bin/pip install --quiet --upgrade git+https://github.com/botforge-pro/commentcensor.git@$(COMMENTCENSOR_REF)
+	python3 -m pip install --quiet --upgrade git+https://github.com/botforge-pro/commentcensor.git
 
 comments:
-	$(COMMENTCENSOR) .
+	commentcensor .
 
 lint: comments
 	./gradlew ktlintCheck
