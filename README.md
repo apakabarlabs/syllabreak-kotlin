@@ -4,7 +4,7 @@
 
 Multilingual library for accurate and deterministic hyphenation and syllable counting without relying on dictionaries.
 
-This is a Kotlin/JVM port of [syllabreak-python](https://github.com/apakabarlabs/syllabreak-python). Rules and tests are synced from there via `make sync-yaml`.
+This is a Kotlin/JVM port of [syllabreak-python](https://github.com/apakabarlabs/syllabreak-python). Rules and tests are synced from its `make sync-yaml`.
 
 ## Supported Languages
 
