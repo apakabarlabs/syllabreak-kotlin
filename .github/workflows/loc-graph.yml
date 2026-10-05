@@ -15,4 +15,4 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
-      - uses: botforge-pro/loc-graph-action@fe17f8da2119bdcc3cfdead49a6f8bd95f4867c9 # main
+      - uses: botforge-pro/loc-graph-action@4dd21616a725d80918e36a7e59bc0a1892ad94ef # main
