@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := build
 
-.PHONY: install-tools comments lint lint-fix format test-build test docs build clean install publish publish-local publish-check
+.PHONY: install-tools comments lint lint-fix format test-build test docs build install publish publish-local publish-check
 
 install-tools:
 	python3 -m pip install --quiet --upgrade git+https://github.com/botforge-pro/commentcensor.git
@@ -37,9 +37,6 @@ publish-local:
 
 publish-check:
 	./gradlew publishToMavenLocal
-
-clean:
-	./gradlew clean
 
 install:
 	$(MAKE) install-tools
